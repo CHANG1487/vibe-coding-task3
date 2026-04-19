@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { googleAuth, API } from "./api.js";
+import { googleAuth, API, initGoogleApis } from "./api.js";
 
 let chartInstance = null;
 let allRecords = [];
@@ -27,6 +27,8 @@ document.getElementById("logout-btn").onclick = () => {
   document.getElementById("main-screen").classList.add("hidden");
   document.getElementById("login-screen").classList.remove("hidden");
 };
+
+initGoogleApis();
 
 // === 資料載入 ===
 async function loadAppData(showLoading = true) {

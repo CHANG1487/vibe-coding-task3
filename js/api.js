@@ -7,38 +7,6 @@ export const googleAuth = {
   onAuthSuccess: null,
 };
 
-// 暴露給 HTML 載入後觸發的全域函式
-window.gapiLoaded = () => {
-  gapi.load("client", async () => {
-    try {
-      await gapi.client.init({
-        discoveryDocs: [
-          "https://sheets.googleapis.com/$discovery/rest?version=v4",
-        ],
-      });
-      googleAuth.gapiInited = true;
-      checkAuth();
-    } catch (err) {
-      console.error("GAPI 錯誤", err);
-    }
-  });
-};
-
-window.gisLoaded = () => {
-  googleAuth.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CONFIG.CLIENT_ID,
-    scope: CONFIG.SCOPES,
-    callback: (tokenResponse) => {
-      if (tokenResponse.error !== undefined) return;
-      localStorage.setItem("auth_time", Date.now());
-      localStorage.setItem("access_token", tokenResponse.access_token);
-      if (googleAuth.onAuthSuccess) googleAuth.onAuthSuccess();
-    },
-  });
-  googleAuth.gisInited = true;
-  checkAuth();
-};
-
 function checkAuth() {
   if (!googleAuth.gapiInited || !googleAuth.gisInited) return;
   const authTime = localStorage.getItem("auth_time");
@@ -54,6 +22,50 @@ function checkAuth() {
     }
   }
   document.getElementById("login-screen").classList.remove("hidden");
+}
+
+// 新增：確保模組載入後，才動態生成標籤去抓取 Google 的腳本
+export function initGoogleApis() {
+  const gapiScript = document.createElement("script");
+  gapiScript.src = "https://apis.google.com/js/api.js";
+  gapiScript.async = true;
+  gapiScript.defer = true;
+  gapiScript.onload = () => {
+    gapi.load("client", async () => {
+      try {
+        await gapi.client.init({
+          discoveryDocs: [
+            "https://sheets.googleapis.com/$discovery/rest?version=v4",
+          ],
+        });
+        googleAuth.gapiInited = true;
+        checkAuth();
+      } catch (err) {
+        console.error("GAPI 錯誤", err);
+      }
+    });
+  };
+  document.body.appendChild(gapiScript);
+
+  const gisScript = document.createElement("script");
+  gisScript.src = "https://accounts.google.com/gsi/client";
+  gisScript.async = true;
+  gisScript.defer = true;
+  gisScript.onload = () => {
+    googleAuth.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CONFIG.CLIENT_ID,
+      scope: CONFIG.SCOPES,
+      callback: (tokenResponse) => {
+        if (tokenResponse.error !== undefined) return;
+        localStorage.setItem("auth_time", Date.now());
+        localStorage.setItem("access_token", tokenResponse.access_token);
+        if (googleAuth.onAuthSuccess) googleAuth.onAuthSuccess();
+      },
+    });
+    googleAuth.gisInited = true;
+    checkAuth();
+  };
+  document.body.appendChild(gisScript);
 }
 
 export const API = {
