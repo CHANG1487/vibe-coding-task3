@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>個人記帳工具</title>
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="style.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
@@ -27,93 +27,174 @@
           </div>
         </header>
 
-        <section class="card chart-section">
-          <div class="chart-header">
-            <h3>
-              本月分類報表
-              <span class="subtitle" style="margin-left: 0"
-                >(點擊圖表可看明細)</span
+        <div class="main-layout">
+          <aside class="left-column">
+            <section class="card form-section">
+              <h3
+                style="
+                  color: var(--primary-color);
+                  border-left: 4px solid var(--primary-color);
+                  padding-left: 10px;
+                "
               >
-            </h3>
-            <div class="toggle-group">
-              <button id="toggle-expense" class="toggle-btn active">
-                支出
-              </button>
-              <button id="toggle-income" class="toggle-btn">收入</button>
-            </div>
-          </div>
-          <div class="chart-container">
-            <canvas id="expense-chart"></canvas>
-          </div>
-        </section>
+                新增收支
+              </h3>
+              <form id="record-form">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>日期</label
+                    ><input type="date" id="input-date" required />
+                  </div>
+                  <div class="form-group">
+                    <label>收支類型</label>
+                    <select id="input-type" required>
+                      <option value="支出">支出</option>
+                      <option value="收入">收入</option>
+                      <option value="轉帳">轉帳</option>
+                    </select>
+                  </div>
+                  <div class="form-group hidden" id="transfer-target-group">
+                    <label>轉入帳戶</label
+                    ><select id="input-transfer-target"></select>
+                  </div>
+                  <div class="form-group" id="category-group">
+                    <label>分類</label
+                    ><select id="input-category" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>金額</label
+                    ><input type="number" id="input-amount" min="1" required />
+                  </div>
+                  <div class="form-group">
+                    <label>支付方式</label>
+                    <select id="input-method" required>
+                      <option value="現金">現金</option>
+                      <option value="銀行帳戶">銀行帳戶</option>
+                      <option value="信用卡">信用卡</option>
+                      <option value="電子支付">電子支付</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label id="payment-label">帳戶/卡片</label
+                    ><select id="input-payment" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>說明</label
+                    ><textarea
+                      id="input-desc"
+                      placeholder="例如：早餐店蛋餅大冰奶"
+                      required
+                      rows="3"
+                      style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 1px solid #d1d5db;
+                        border-radius: 10px;
+                        background: #f9fafb;
+                        resize: vertical;
+                      "
+                    ></textarea>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  id="submit-btn"
+                  class="primary-btn submit-btn"
+                  style="margin-top: 10px"
+                >
+                  儲存這筆帳目
+                </button>
+              </form>
+            </section>
+          </aside>
 
-        <section class="card balance-section">
-          <h3>
-            帳戶餘額 <span class="subtitle">(包含期初餘額，點擊可看明細)</span>
-          </h3>
-          <div id="balance-container"></div>
-        </section>
+          <main class="right-column">
+            <section class="card summary-section">
+              <div class="chart-header" style="margin-bottom: 10px">
+                <h3 style="margin: 0">總覽</h3>
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <span style="font-size: 14px; color: var(--text-muted)"
+                    >選擇月份：</span
+                  >
+                  <input
+                    type="month"
+                    id="main-month-filter"
+                    class="month-picker"
+                  />
+                </div>
+              </div>
+              <div class="summary-cards">
+                <div class="summary-card income">
+                  <div class="title">收入</div>
+                  <div class="value" id="summary-income">$0</div>
+                </div>
+                <div class="summary-card expense">
+                  <div class="title">支出</div>
+                  <div class="value" id="summary-expense">$0</div>
+                </div>
+                <div class="summary-card net">
+                  <div class="title">結餘</div>
+                  <div class="value" id="summary-net">$0</div>
+                </div>
+              </div>
+            </section>
 
-        <section class="card form-section">
-          <h3>新增紀錄</h3>
-          <form id="record-form">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>日期</label
-                ><input type="date" id="input-date" required />
+            <section class="card chart-section">
+              <div class="chart-header">
+                <h3>
+                  類別
+                  <span class="subtitle" style="margin-left: 0"
+                    >(點擊圖表可看明細)</span
+                  >
+                </h3>
+                <div class="toggle-group">
+                  <button id="toggle-expense" class="toggle-btn active">
+                    支出
+                  </button>
+                  <button id="toggle-income" class="toggle-btn">收入</button>
+                </div>
               </div>
-              <div class="form-group">
-                <label>類型</label>
-                <select id="input-type" required>
-                  <option value="支出">支出</option>
-                  <option value="收入">收入</option>
-                  <option value="轉帳">轉帳</option>
-                </select>
+              <div class="chart-container">
+                <canvas id="expense-chart"></canvas>
               </div>
-              <div class="form-group hidden" id="transfer-target-group">
-                <label>轉入帳戶</label
-                ><select id="input-transfer-target"></select>
+            </section>
+
+            <section class="card history-section">
+              <h3>帳務明細</h3>
+              <div
+                style="
+                  display: flex;
+                  padding: 10px 0;
+                  border-bottom: 2px solid #e5e7eb;
+                  color: var(--text-muted);
+                  font-size: 14px;
+                  font-weight: bold;
+                "
+              >
+                <div style="flex: 1.5">日期</div>
+                <div style="flex: 1.5">分類</div>
+                <div style="flex: 2">說明</div>
+                <div style="flex: 1.5; text-align: right">金額</div>
+                <div style="flex: 2; text-align: right; padding-right: 10px">
+                  支付方式
+                </div>
               </div>
-              <div class="form-group" id="category-group">
-                <label>分類</label
-                ><select id="input-category" required></select>
-              </div>
-              <div class="form-group">
-                <label>金額</label
-                ><input type="number" id="input-amount" min="1" required />
-              </div>
-              <div class="form-group">
-                <label>支付/收款方式</label>
-                <select id="input-method" required>
-                  <option value="現金">現金</option>
-                  <option value="銀行帳戶">銀行帳戶</option>
-                  <option value="信用卡">信用卡</option>
-                  <option value="電子支付">電子支付</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label id="payment-label">帳戶/卡片</label
-                ><select id="input-payment" required></select>
-              </div>
-              <div class="form-group full-width">
-                <label>描述</label
-                ><input
-                  type="text"
-                  id="input-desc"
-                  placeholder="例如：早餐店蛋餅大冰奶"
-                  required
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              id="submit-btn"
-              class="primary-btn submit-btn"
-            >
-              儲存紀錄
-            </button>
-          </form>
-        </section>
+              <div
+                id="main-transaction-list"
+                class="transaction-list"
+                style="padding: 0; max-height: 400px"
+              ></div>
+            </section>
+
+            <section class="card balance-section">
+              <h3>
+                帳戶餘額
+                <span class="subtitle">(包含期初餘額，點擊可看歷史明細)</span>
+              </h3>
+              <div id="balance-container"></div>
+            </section>
+          </main>
+        </div>
       </div>
     </div>
 
@@ -178,7 +259,7 @@
               ><select id="edit-payment" required></select>
             </div>
             <div class="form-group full-width">
-              <label>描述</label><input type="text" id="edit-desc" required />
+              <label>說明</label><input type="text" id="edit-desc" required />
             </div>
           </div>
           <button type="submit" class="primary-btn submit-btn">更新紀錄</button>

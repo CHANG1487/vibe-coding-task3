@@ -1,13 +1,14 @@
 :root {
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
-  --expense-color: #ef4444;
-  --income-color: #10b981;
-  --bg-color: #f3f4f6;
+  --primary-color: #4f46e5; /* 改為與參考圖相近的紫色調 */
+  --primary-hover: #4338ca;
+  --expense-color: #dc2626;
+  --income-color: #16a34a;
+  --net-color: #2563eb;
+  --bg-color: #f8fafc;
   --card-bg: #ffffff;
-  --text-main: #1f2937;
-  --text-muted: #6b7280;
-  --border-radius: 16px;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-radius: 12px;
 }
 * {
   box-sizing: border-box;
@@ -21,13 +22,38 @@ body {
   color: var(--text-main);
   line-height: 1.6;
 }
+
+/* 放大容器以適應雙欄位 */
 #app {
-  max-width: 700px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 .hidden {
   display: none !important;
+}
+
+/* 雙欄位排版 */
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (min-width: 900px) {
+  .main-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .left-column {
+    width: 350px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+  }
+  .right-column {
+    flex-grow: 1;
+    min-width: 0;
+  }
 }
 
 /* Header & Buttons */
@@ -48,34 +74,33 @@ header {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 .primary-btn:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 10px rgba(59, 130, 246, 0.3);
 }
 .primary-btn:disabled {
-  background-color: #93c5fd;
+  background-color: #a5b4fc;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 .text-btn {
-  background: none;
+  background: #e2e8f0;
   border: none;
-  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--text-main);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
 }
 .text-btn:hover {
-  color: var(--text-main);
+  background: #cbd5e1;
 }
 .small-btn {
   padding: 8px 12px;
@@ -92,8 +117,10 @@ header {
   border-radius: var(--border-radius);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f1f5f9;
 }
 .card h3 {
   margin-bottom: 20px;
@@ -108,6 +135,46 @@ header {
   color: var(--text-muted);
   margin-left: 8px;
   font-weight: normal;
+}
+
+/* 摘要卡片 (參考圖的收入、支出、結餘) */
+.summary-cards {
+  display: flex;
+  gap: 16px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+.summary-card {
+  flex: 1;
+  min-width: 120px;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+.summary-card.income {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: var(--income-color);
+}
+.summary-card.expense {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: var(--expense-color);
+}
+.summary-card.net {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: var(--net-color);
+}
+.summary-card .title {
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.summary-card .value {
+  font-size: 24px;
+  font-weight: bold;
 }
 
 /* Method Section Styling */
@@ -171,40 +238,31 @@ header {
   width: 100%;
   padding: 12px;
   border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 15px;
   background: #f9fafb;
   transition: border 0.2s;
 }
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   background: #fff;
-}
-@media (min-width: 600px) {
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 20px;
-  }
-  .full-width {
-    grid-column: span 2;
-  }
 }
 
 /* Chart Area */
 .chart-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 10px;
 }
 .toggle-group {
   display: flex;
-  background: #e5e7eb;
+  background: #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
   padding: 4px;
@@ -218,15 +276,16 @@ header {
   font-size: 14px;
   border-radius: 6px;
   transition: 0.2s;
+  font-weight: bold;
 }
 .toggle-btn.active {
   background: white;
   color: var(--text-main);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 .chart-container {
   position: relative;
-  height: 260px;
+  height: 300px;
   width: 100%;
 }
 
@@ -287,10 +346,11 @@ header {
   line-height: 1;
 }
 .month-picker {
-  padding: 4px 8px;
-  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 /* Settings */
@@ -338,16 +398,29 @@ header {
   font-size: 14px;
   border: 1px solid #e5e7eb;
 }
+.setting-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.edit-item-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+}
 .delete-item-btn {
   background: none;
   border: none;
   color: #ef4444;
   cursor: pointer;
   font-size: 16px;
-  padding-left: 10px;
+  transition: color 0.2s;
 }
 
-/* Transactions */
+/* Transactions List */
 .transaction-list {
   padding: 20px;
   overflow-y: auto;
@@ -358,7 +431,10 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f1f5f9;
+}
+.tx-item:hover {
+  background-color: #f8fafc;
 }
 .tx-left {
   display: flex;
@@ -410,6 +486,59 @@ header {
   color: var(--text-main);
 }
 
+/* 主頁明細特製樣式 (五欄位) */
+.main-list-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+.main-list-item > div {
+  padding-right: 10px;
+}
+.main-list-item .col-date {
+  flex: 1.5;
+  color: var(--text-muted);
+}
+.main-list-item .col-cat {
+  flex: 1.5;
+}
+.main-list-item .col-cat span {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.main-list-item .col-cat span.income-cat {
+  background: #dcfce7;
+  color: #166534;
+}
+.main-list-item .col-desc {
+  flex: 2;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.main-list-item .col-amt {
+  flex: 1.5;
+  text-align: right;
+  font-weight: bold;
+  font-size: 15px;
+}
+.main-list-item .col-pay {
+  flex: 2;
+  text-align: right;
+  color: var(--text-muted);
+  padding-right: 0;
+}
+.main-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 5px;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -419,33 +548,4 @@ header {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Settings Action Buttons */
-.setting-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.edit-item-btn {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  cursor: pointer;
-  font-size: 16px;
-  transition: color 0.2s;
-}
-.edit-item-btn:hover {
-  color: var(--primary-hover);
-}
-.delete-item-btn {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 16px;
-  transition: color 0.2s;
-}
-.delete-item-btn:hover {
-  color: #dc2626;
 }
