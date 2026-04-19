@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>個人記帳工具</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div id="login-screen" class="screen">
+        <div class="login-card">
+          <h1>記帳工具</h1>
+          <p>請使用 Google 帳號登入以同步您的試算表</p>
+          <button id="login-btn" class="primary-btn">Google 登入</button>
+        </div>
+      </div>
+
+      <div id="main-screen" class="screen hidden">
+        <header>
+          <h2>我的帳務總覽</h2>
+          <div class="header-actions">
+            <button id="settings-btn" class="text-btn">管理欄位</button>
+            <button id="logout-btn" class="text-btn">登出</button>
+          </div>
+        </header>
+
+        <section class="card chart-section">
+          <div class="chart-header">
+            <h3>
+              本月分類報表
+              <span class="subtitle" style="margin-left: 0"
+                >(點擊圖表可看明細)</span
+              >
+            </h3>
+            <div class="toggle-group">
+              <button id="toggle-expense" class="toggle-btn active">
+                支出
+              </button>
+              <button id="toggle-income" class="toggle-btn">收入</button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="expense-chart"></canvas>
+          </div>
+        </section>
+
+        <section class="card balance-section">
+          <h3>
+            帳戶餘額 <span class="subtitle">(包含期初餘額，點擊可看明細)</span>
+          </h3>
+          <div id="balance-container"></div>
+        </section>
+
+        <section class="card form-section">
+          <h3>新增紀錄</h3>
+          <form id="record-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>日期</label
+                ><input type="date" id="input-date" required />
+              </div>
+              <div class="form-group">
+                <label>類型</label>
+                <select id="input-type" required>
+                  <option value="支出">支出</option>
+                  <option value="收入">收入</option>
+                  <option value="轉帳">轉帳</option>
+                </select>
+              </div>
+              <div class="form-group hidden" id="transfer-target-group">
+                <label>轉入帳戶</label
+                ><select id="input-transfer-target"></select>
+              </div>
+              <div class="form-group" id="category-group">
+                <label>分類</label
+                ><select id="input-category" required></select>
+              </div>
+              <div class="form-group">
+                <label>金額</label
+                ><input type="number" id="input-amount" min="1" required />
+              </div>
+              <div class="form-group">
+                <label>支付/收款方式</label>
+                <select id="input-method" required>
+                  <option value="現金">現金</option>
+                  <option value="銀行帳戶">銀行帳戶</option>
+                  <option value="信用卡">信用卡</option>
+                  <option value="電子支付">電子支付</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label id="payment-label">帳戶/卡片</label
+                ><select id="input-payment" required></select>
+              </div>
+              <div class="form-group full-width">
+                <label>描述</label
+                ><input
+                  type="text"
+                  id="input-desc"
+                  placeholder="例如：早餐店蛋餅大冰奶"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              id="submit-btn"
+              class="primary-btn submit-btn"
+            >
+              儲存紀錄
+            </button>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div id="details-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 id="modal-title" style="margin-bottom: 5px">明細</h3>
+            <input
+              type="month"
+              id="details-month-filter"
+              class="month-picker"
+            />
+          </div>
+          <span class="close-btn" id="close-modal">&times;</span>
+        </div>
+        <div id="modal-body" class="transaction-list"></div>
+      </div>
+    </div>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>編輯紀錄</h3>
+          <span class="close-btn" id="close-edit-modal">&times;</span>
+        </div>
+        <form id="edit-form" style="padding: 20px; overflow-y: auto">
+          <input type="hidden" id="edit-row-id" /><input
+            type="hidden"
+            id="edit-timestamp"
+          />
+          <div class="form-grid">
+            <div class="form-group">
+              <label>日期</label><input type="date" id="edit-date" required />
+            </div>
+            <div class="form-group">
+              <label>類型</label
+              ><select id="edit-type" required>
+                <option value="支出">支出</option>
+                <option value="收入">收入</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>分類</label
+              ><select id="edit-category" required></select>
+            </div>
+            <div class="form-group">
+              <label>金額</label
+              ><input type="number" id="edit-amount" min="1" required />
+            </div>
+            <div class="form-group">
+              <label>支付/收款方式</label>
+              <select id="edit-method" required>
+                <option value="現金">現金</option>
+                <option value="銀行帳戶">銀行帳戶</option>
+                <option value="信用卡">信用卡</option>
+                <option value="電子支付">電子支付</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>帳戶/卡片</label
+              ><select id="edit-payment" required></select>
+            </div>
+            <div class="form-group full-width">
+              <label>描述</label><input type="text" id="edit-desc" required />
+            </div>
+          </div>
+          <button type="submit" class="primary-btn submit-btn">更新紀錄</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content" style="max-width: 650px">
+        <div class="modal-header">
+          <h3>管理欄位 (Category / Payment)</h3>
+          <span class="close-btn" id="close-settings-modal">&times;</span>
+        </div>
+        <div class="settings-body">
+          <div class="settings-col">
+            <h4>分類 (Category)</h4>
+            <div class="add-input-group">
+              <input
+                type="text"
+                id="new-category-input"
+                placeholder="新增分類"
+              />
+              <button id="add-category-btn" class="small-btn">新增</button>
+            </div>
+            <ul id="settings-category-list" class="settings-list"></ul>
+          </div>
+          <div class="settings-col">
+            <h4>帳戶 (Payment)</h4>
+            <div class="add-input-group">
+              <select
+                id="new-payment-method"
+                style="
+                  flex: 1.5;
+                  padding: 8px;
+                  border-radius: 8px;
+                  border: 1px solid #d1d5db;
+                "
+              >
+                <option value="現金">現金</option>
+                <option value="銀行帳戶">銀行帳戶</option>
+                <option value="信用卡">信用卡</option>
+                <option value="電子支付">電子支付</option>
+              </select>
+              <input
+                type="text"
+                id="new-payment-input"
+                placeholder="帳戶名稱"
+                style="flex: 2"
+              />
+              <input
+                type="number"
+                id="new-payment-initial"
+                placeholder="期初餘額"
+                value="0"
+                style="flex: 1.2"
+              />
+              <button id="add-payment-btn" class="small-btn">新增</button>
+            </div>
+            <ul id="settings-payment-list" class="settings-list"></ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="save-settings-btn" class="primary-btn">
+            儲存至試算表
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+    <script
+      async
+      defer
+      src="https://apis.google.com/js/api.js"
+      onload="window.gapiLoaded()"
+    ></script>
+    <script
+      async
+      defer
+      src="https://accounts.google.com/gsi/client"
+      onload="window.gisLoaded()"
+    ></script>
+  </body>
+</html>
